@@ -1,0 +1,5 @@
+vkbottle
+pytelegrambotapi
+nltk
+python-Levenshtein
+asyncio
