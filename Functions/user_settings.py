@@ -28,7 +28,7 @@ async def get_changes(message, id_):
         try:
             value = int(msg.text)
         except ValueError:
-            value = 5 
+            value = 5
         changes_from_user(id_, field, value)
         await msg.answer("Готово")
 

@@ -1,17 +1,17 @@
-# Окружение и кэш
+
 venv/
 __pycache__/
 *.pyc
 venv/
 .env
-# Базы данных
+
 Databases/*.db
 Databases/n.py
 new.py
 
-# Конфиденциальные файлы
+
 Databases/important.py
 
-# Системные файлы Windows
+
 Thumbs.db
 desktop.ini

@@ -5,19 +5,16 @@ from Databases.words import read_db
 from Levenshtein import distance as lev
 
 
-# ===================== DB =====================
 def _load_words():
     return [el[1] for el in read_db()]
 
 
-# ===================== SIMILARITY =====================
 def per_cent(a, b):
     if not b:
         return 0
     return math.ceil(100 - (lev(a, b) / max(len(b), 1)) * 100)
 
 
-# ===================== SYLLABLE SPLIT =====================
 def split(word):
     vowels = "аеиоуыэюя"
     parts = []
@@ -35,41 +32,18 @@ def split(word):
     return parts if parts else [word]
 
 
-# ===================== ENGLISH PHONETIC =====================
 def english_to_russian(word):
     english_map = {
-        'a': 'а',
-        'b': 'б',
-        'c': 'к',
-        'd': 'д',
-        'e': 'е',
-        'f': 'ф',
-        'g': 'г',
-        'h': 'х',
-        'i': 'и',
-        'j': 'дж',
-        'k': 'к',
-        'l': 'л',
-        'm': 'м',
-        'n': 'н',
-        'o': 'о',
-        'p': 'п',
-        'q': 'к',
-        'r': 'р',
-        's': 'с',
-        't': 'т',
-        'u': 'у',
-        'v': 'в',
-        'w': 'в',
-        'x': 'кс',
-        'y': 'й',
-        'z': 'з'
+        'a': 'а', 'b': 'б', 'c': 'к', 'd': 'д', 'e': 'е',
+        'f': 'ф', 'g': 'г', 'h': 'х', 'i': 'и', 'j': 'дж',
+        'k': 'к', 'l': 'л', 'm': 'м', 'n': 'н', 'o': 'о',
+        'p': 'п', 'q': 'к', 'r': 'р', 's': 'с', 't': 'т',
+        'u': 'у', 'v': 'в', 'w': 'в', 'x': 'кс', 'y': 'й', 'z': 'з'
     }
 
     return ''.join(english_map.get(ch, ch) for ch in word.lower())
 
 
-# ===================== RUSSIAN TRANSFER =====================
 d = {
     'а': ['а', 'a', '@'],
     'б': ['б', 'b'],
@@ -109,11 +83,9 @@ d = {
 def transfer(word):
     word = word.lower()
 
-    # EN → phonetic RU
     if word.isascii():
         return english_to_russian(word)
 
-    # RU → normalize
     res = []
     for ch in word:
         for k, v in d.items():
@@ -124,7 +96,6 @@ def transfer(word):
     return ''.join(res)
 
 
-# ===================== CORE =====================
 def give(word, original, all_words):
 
     syllables = split(word)
@@ -154,7 +125,6 @@ def give(word, original, all_words):
     return "\n".join(result)
 
 
-# ===================== MAIN =====================
 def _get_full_line_sync(text):
 
     all_words = _load_words()

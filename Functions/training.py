@@ -34,30 +34,23 @@ def make_right(list_, how_many):
     return new
 
 async def training(message):
-    # Загружаем базу слов
     words_all = read_db()
     words_all = [str(el[1]) for el in words_all]
     
-    # Получаем настройки пользователя
     user_data = list(get_user_by_id(find_user_id_by_tg_id(int(message.from_id))))
     
-    # Настройки: user_data[5] - кол-во слов, user_data[4] - время на одно слово
     count_words = int(user_data[5])
     time_per_word = int(user_data[4])
     
     content = make_right(words_all, count_words)
     job = '\n'.join(dict_to_list(content))
     
-    # Считаем общее время ожидания
     total_time = time_per_word * len(content)
     
-    # Отправляем список слов и сохраняем объект сообщения
     sent_msg = await message.answer(f"{job}\n\n⏱ У тебя есть {total_time} секунд!")
     
-    # Ждем
     await asyncio.sleep(total_time)
     
-    # Удаляем сообщение, обращаясь к .message_id
     try:
         await message.ctx_api.messages.delete(
             message_ids=[int(sent_msg.message_id)], 

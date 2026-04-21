@@ -1,7 +1,6 @@
 import sqlite3
 
 def read_db():
-    """Получает список слов для тренировки памяти"""
     try:
         with sqlite3.connect('Databases/words.db') as conn:
             cursor = conn.cursor()
@@ -11,7 +10,6 @@ def read_db():
         return []
 
 def read_db2():
-    """Получает тексты для упражнений по скорочтению"""
     try:
         with sqlite3.connect('Databases/texts.db') as conn:
             cursor = conn.cursor()

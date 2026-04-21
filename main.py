@@ -15,7 +15,6 @@ from Functions.user_settings import get_changes
 from state_manager import steps, register_next_step
 
 
-# ===================== КЛАВИАТУРА =====================
 def get_keyboard(custom_markup: list=None, settings: bool=False, empty: bool=True):
     keyboard = Keyboard(one_time=False)
 
@@ -47,29 +46,23 @@ def get_keyboard(custom_markup: list=None, settings: bool=False, empty: bool=Tru
     return keyboard.get_json()
 
 
-# ===================== HELPER (ВАЖНО) =====================
 async def reply(msg: Message, text: str):
     await msg.answer(text, keyboard=get_keyboard(empty=False))
 
 
-# ===================== БОТ =====================
 bot = Bot(token=give_info('token'))
 
 
-# ===================== START =====================
 @bot.on.message(text=['/start', 'старт', 'Начать'])
 async def start_handler(message: Message):
     create_table()
     add_user(message.from_id, 10, 5, 10, 5)
-
     await reply(message, "Выберите режим работы")
 
 
-# ===================== ОСНОВНОЙ ХЕНДЛЕР =====================
 @bot.on.message()
 async def main_handler(message: Message):
 
-    # FSM
     if message.from_id in steps:
         func = steps.pop(message.from_id)
         await func(message)
@@ -77,8 +70,6 @@ async def main_handler(message: Message):
 
     text = message.text.lower()
 
-
-    # ================= MINI APP =================
     if "mini app" in text:
         keyboard = (
             Keyboard(inline=True)
@@ -88,8 +79,6 @@ async def main_handler(message: Message):
         await message.answer("Нажми кнопку ниже:", keyboard=keyboard)
         return
 
-
-    # ================= ТОЛКОВАНИЕ =================
     elif text == "толкование терминов":
         await message.answer(
             "Введите слово, значение которого хотите узнать",
@@ -102,9 +91,6 @@ async def main_handler(message: Message):
 
         register_next_step(message.from_id, next_step)
 
-
-    # ================= АССОЦИАЦИИ =================
-    # ================= АССОЦИАЦИИ =================
     elif text == "ассоциации":
         await message.answer(
             "Введите слово(а), ассоциацию(ии) к которому(ым) хотите получить",
@@ -113,7 +99,6 @@ async def main_handler(message: Message):
 
         async def next_step(msg: Message):
             associations = await get_full_line(msg.text)
-            # Вместо reply используем обычный answer с кнопками режимов
             await msg.answer(
                 "Результат:\n" + "\n".join(associations), 
                 keyboard=get_keyboard([
@@ -128,19 +113,9 @@ async def main_handler(message: Message):
 
         register_next_step(message.from_id, next_step)
 
-        async def next_step(msg: Message):
-            associations = await get_full_line(msg.text)
-            await reply(msg, "Результат:\n" + "\n".join(associations))
-
-        register_next_step(message.from_id, next_step)
-
-
-    # ================= ЧИСЛА =================
     elif text == "числа":
-        await new_cmd_memo_get(message)
+        new_cmd_memo_get(message)
 
-
-    # ================= СКОРОЧТЕНИЕ =================
     elif text == "скорочтение":
         await message.answer(
             "Выберите раздел для тренировки",
@@ -152,8 +127,6 @@ async def main_handler(message: Message):
             ])
         )
 
-
-    # ================= МЕНЮ =================
     elif text in ["далее", "в начало"]:
         await message.answer(
             "Выберите раздел для тренировки",
@@ -167,19 +140,15 @@ async def main_handler(message: Message):
             ])
         )
 
-
     elif text == "настройки":
         await message.answer(
             "Вы можете выбрать одну из опций",
             keyboard=get_keyboard(settings=True)
         )
 
-
     elif text == "назад":
         await reply(message, "Выберите режим работы")
 
-
-    # ================= РЕЖИМЫ =================
     elif text == "чтение наоборот":
         await reversed_reading(message)
 
@@ -192,12 +161,9 @@ async def main_handler(message: Message):
     elif text == "слова":
         await training(message)
 
-
-    # ================= ПРОЧЕЕ =================
     else:
         await get_changes(message, message.from_id)
 
 
-# ===================== ЗАПУСК =====================
 if __name__ == "__main__":
     bot.run_forever()

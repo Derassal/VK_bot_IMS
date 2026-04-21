@@ -6,7 +6,8 @@ async def reversed_reading(message):
     await message.answer("После прочтения напишите что-нибудь, чтобы получить ответ!")
     text = random.choice(list(read_db2()))[1]
     text = str(text)
-    output = list()
+    output = []
+    
     for word in text.split():
         addition = ""
         if word[-1] in ",.?!":
@@ -26,7 +27,8 @@ async def without_vowel(message):
     await message.answer("После прочтения напишите что-нибудь, чтобы получить ответ!")
     text = random.choice(list(read_db2()))[1]
     text = str(text)
-    output = str()
+    output = ""
+    
     for letter in text:
         if letter.lower() not in "аеёиоуыэюя":
             output += letter
@@ -43,7 +45,8 @@ async def half_digits(message):
     await message.answer("После прочтения напишите что-нибудь, чтобы получить ответ!")
     text = random.choice(list(read_db2()))[1]
     text = str(text)
-    output = str()
+    output = ""
+    
     for letter in text:
         if letter.lower() not in " !.,?-–":
             if random.choice([1, 0]) or letter not in "абвгдеёжзийклмнопрстуфхцчшщъыьэюя":

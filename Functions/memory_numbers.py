@@ -9,7 +9,6 @@ def dict_to_list(d):
 async def check_case(message, cases, case_id, correct_answer):
     if message.text.lower() != "/конец":
         is_correct = message.text.lower() == correct_answer.lower()
-        # В vkbottle лучше использовать message.answer
         await message.answer("Удачно!" if is_correct else f"Не-не. Правильно: {correct_answer}")
         await give_case(message, cases, case_id + 1)
     else:
@@ -34,10 +33,8 @@ def make_right(list_, how_many):
     return new
 
 async def new_cmd_memo_get(message):
-    # Получаем данные пользователя
     user_data = list(get_user_by_id(find_user_id_by_tg_id(int(message.from_id))))
     
-    # user_data[3] - количество, user_data[2] - время на одно число
     count_numbers = int(user_data[3])
     time_per_number = int(user_data[2])
     
@@ -45,13 +42,10 @@ async def new_cmd_memo_get(message):
     content = make_right(new_numbers, count_numbers)
     job = ' | '.join(new_numbers)
     
-    # Отправляем сообщение и сохраняем результат
     sent_msg = await message.answer(f"{job}")
     
-    # Ждем нужное время (время на одно число * количество чисел)
     await asyncio.sleep(time_per_number * count_numbers)
     
-    # УДАЛЕНИЕ: берем .message_id и оборачиваем в int для надежности
     try:
         await message.ctx_api.messages.delete(
             message_ids=[int(sent_msg.message_id)], 

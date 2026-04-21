@@ -23,5 +23,4 @@ def _get_definition_sync(word):
     return "\n(!) Ошибка, пожалуйста, проверьте написание слова..."
 
 async def get_definition(word):
-    # Запускаем синхронную функцию в отдельном потоке
     return await asyncio.to_thread(_get_definition_sync, word)

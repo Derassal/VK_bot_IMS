@@ -1,7 +1,6 @@
 import sqlite3
 import asyncio
 
-# Это база данных пользователей (настройки времени и количества)
 DB_PATH = 'Databases/db.db'
 
 def create_table():
@@ -29,7 +28,6 @@ def add_user(tg_id, nt, nq, wt, wq):
         conn.commit()
 
 def find_user_id_by_tg_id(tg_id):
-    """Находит внутренний ID пользователя по его VK ID (в коде оставили имя tg_id для совместимости)"""
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM users WHERE tg_id = ?", (tg_id,))
@@ -37,14 +35,12 @@ def find_user_id_by_tg_id(tg_id):
         return result[0] if result else None
 
 def get_user_by_id(user_id):
-    """Получает все настройки пользователя по его внутреннему ID"""
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
         return cursor.fetchone()
 
 def changes_from_user(tg_id, field, value):
-    """Обновляет настройки пользователя"""
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         allowed_fields = ['number_time', 'number_quantity', 'words_time', 'words_quantity']
