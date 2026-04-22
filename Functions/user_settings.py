@@ -14,64 +14,59 @@ def get_keyboard(custom_markup: list=None, settings: bool=False, empty: bool=Tru
             keyboard.add(Text(btn), color=KeyboardButtonColor.SECONDARY)
         keyboard.row()
     if settings:
-        keyboard.add(Text("время -> чисел"), color=KeyboardButtonColor.SECONDARY)
-        keyboard.add(Text("кол-во -> чисел"), color=KeyboardButtonColor.SECONDARY)
+        keyboard.add(Text("время -> чисел"))
+        keyboard.add(Text("кол-во -> чисел"))
         keyboard.row()
-        keyboard.add(Text("время -> слов"), color=KeyboardButtonColor.SECONDARY)
-        keyboard.add(Text("кол-во -> слов"), color=KeyboardButtonColor.SECONDARY)
+        keyboard.add(Text("время -> слов"))
+        keyboard.add(Text("кол-во -> слов"))
+        keyboard.row()
+        keyboard.add(Text("Язык ассоциаций"), color=KeyboardButtonColor.PRIMARY)
         keyboard.row()
         keyboard.add(Text("Назад"), color=KeyboardButtonColor.NEGATIVE)
     return keyboard.get_json()
 
 async def get_changes(message, id_):
     async def process_input(field, msg):
-        try:
-            value = int(msg.text)
-        except ValueError:
-            value = 5
-        changes_from_user(id_, field, value)
-        await msg.answer("Готово")
-
-    async def another_step(msg):
-        await msg.answer("Вернулись!", keyboard=get_keyboard(empty=False))
+        val = msg.text
+        if field != 'lang_pair':
+            try: val = int(msg.text)
+            except: val = 5
+        changes_from_user(id_, field, val)
+        await msg.answer(f"Готово! Изменения сохранены.")
 
     text_lower = message.text.lower()
     
-    if text_lower == "время -> чисел":
-        await message.answer('Введите новое значение - сколько секунд бот будет давать на запоминание 1 числа (только число)')
-        async def step1(msg):
-            if msg.text.lower() == 'назад':
-                await another_step(msg)
+    if text_lower == "язык ассоциаций":
+        await message.answer(
+            "Введите пару языков через пробел.\n"
+            "Доступно: rus, en, es\n"
+            "Пример: 'rus en'"
+        )
+        async def step_lang(msg):
+            parts = msg.text.lower().split()
+            valid = ['rus', 'en', 'es']
+            if len(parts) == 2 and parts[0] in valid and parts[1] in valid:
+                await process_input('lang_pair', msg)
             else:
-                await process_input('number_time', msg)
-        register_next_step(id_, step1)
-        
+                await msg.answer("Ошибка формата. Напишите, например: rus en")
+        register_next_step(id_, step_lang)
+
+    elif text_lower == "время -> чисел":
+        await message.answer('Введите время (сек) на 1 число')
+        register_next_step(id_, lambda msg: process_input('number_time', msg))
+    
     elif text_lower == "кол-во -> чисел":
-        await message.answer('Введите новое значение - количество чисел в тренировке (только число)')
-        async def step2(msg):
-            if msg.text.lower() == 'назад':
-                await another_step(msg)
-            else:
-                await process_input('number_quantity', msg)
-        register_next_step(id_, step2)
+        await message.answer('Введите количество чисел')
+        register_next_step(id_, lambda msg: process_input('number_quantity', msg))
         
     elif text_lower == "время -> слов":
-        await message.answer('Введите новое значение - сколько секунд бот будет давать на запоминание 1 слова (только число)')
-        async def step3(msg):
-            if msg.text.lower() == 'назад':
-                await another_step(msg)
-            else:
-                await process_input('words_time', msg)
-        register_next_step(id_, step3)
+        await message.answer('Введите время (сек) на 1 слово')
+        register_next_step(id_, lambda msg: process_input('words_time', msg))
         
     elif text_lower == "кол-во -> слов":
-        await message.answer('Введите новое значение - количество слов в тренировке (только число)')
-        async def step4(msg):
-            if msg.text.lower() == 'назад':
-                await another_step(msg)
-            else:
-                await process_input('words_quantity', msg)
-        register_next_step(id_, step4)
+        await message.answer('Введите количество слов')
+        register_next_step(id_, lambda msg: process_input('words_quantity', msg))
         
     else:
-        await message.answer('Не понял команды')
+        # ИСПРАВЛЕНИЕ: Бот больше не молчит на левые сообщения
+        await message.answer("Не понял команду. Выберите действие на клавиатуре.")
