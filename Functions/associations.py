@@ -23,27 +23,36 @@ MAPS = {
         'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
         'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch', 'ы': 'y',
         'ь': '', 'ъ': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+    },
+    'to_rus': {
+        'a': 'а', 'b': 'б', 'c': 'к', 'd': 'д', 'e': 'е', 'f': 'ф', 'g': 'г',
+        'h': 'х', 'i': 'и', 'j': 'й', 'k': 'к', 'l': 'л', 'm': 'м', 'n': 'н',
+        'o': 'о', 'p': 'п', 'q': 'к', 'r': 'р', 's': 'с', 't': 'т', 'u': 'у',
+        'v': 'в', 'w': 'в', 'x': 'кс', 'y': 'и', 'z': 'з', 'ñ': 'нь', 
+        'á': 'а', 'é': 'е', 'í': 'и', 'ó': 'о', 'ú': 'у', 'ü': 'у'
     }
 }
 
-def _load_words(lang_to):
-    db_files = {'rus': 'words.db', 'es': 'spanish_words.db', 'en': 'english_words.db'}
-    path = f"Databases/{db_files.get(lang_to, 'words.db')}"
+def load_w(l_t):
+    files = {'rus': 'words.db', 'es': 'spanish_words.db', 'en': 'english_words.db'}
+    path = f"Databases/{files.get(l_t, 'words.db')}"
     try:
         conn = sqlite3.connect(path)
         cur = conn.cursor()
         cur.execute("SELECT word FROM words")
-        res = [el[0] for el in cur.fetchall()]
+        res = list()
+        for el in cur.fetchall():
+            res.append(el[0])
         conn.close()
         return res
     except:
         return list()
 
-def per_cent(a, b):
+def p_cent(a, b):
     if not b: return 0
     return math.ceil(100 - (lev(a, b) / max(len(b), 1)) * 100)
 
-def split_syllables(word, lang):
+def split_s(word, lang):
     v = VOWELS.get(lang, VOWELS['rus'])
     parts = list()
     cur = ""
@@ -55,38 +64,53 @@ def split_syllables(word, lang):
     if cur: parts.append(cur)
     return parts if parts else [word]
 
-def transfer(word, lang_from, lang_to):
+def transf(word, l_f, l_t):
     word = word.lower()
-    if lang_from == 'rus' and lang_to in MAPS:
-        return ''.join(MAPS[lang_to].get(ch, ch) for ch in word)
+    if l_f == l_t: 
+        return word
+    if l_f == 'rus' and l_t in MAPS:
+        m = list()
+        for ch in word: 
+            m.append(MAPS[l_t].get(ch, ch))
+        return "".join(m)
+    if l_t == 'rus' and l_f != 'rus':
+        m = list()
+        for ch in word: 
+            m.append(MAPS['to_rus'].get(ch, ch))
+        return "".join(m)
     return word
 
-def give(word, original, all_words, lang_to):
-    syllables = split_syllables(word, lang_to)
-    result = [f"{original} = {word}:"]
-    for s in syllables:
-        direct = None
-        # ИСПРАВЛЕНИЕ: Защита от пустой базы
-        if not all_words:
-            direct = "[Ошибка: База слов пуста или не найдена]"
+def give(word, orig, base, l_t):
+    syls = split_s(word, l_t)
+    res = list()
+    res.append(f"{orig} = {word}:")
+    for s in syls:
+        match = None
+        if not base:
+            match = "ошибка базы"
         else:
-            for el in all_words:
+            for el in base:
                 if el.lower().startswith(s.lower()):
-                    direct = el
+                    match = el
                     break
-            if not direct:
-                best = max(all_words, key=lambda x: per_cent(s, x))
-                direct = best if per_cent(s, best) >= 10 else "???"
-        result.append(f"{s} => {direct}")
-    return "\n".join(result)
+            if not match:
+                best = max(base, key=lambda x: p_cent(s, x))
+                match = best if p_cent(s, best) >= 10 else "???"
+        res.append(f"{s} => {match}")
+    return "\n".join(res)
 
-def _get_full_line_sync(text, lang_pair):
-    l_from, l_to = lang_pair.split()
-    all_words = _load_words(l_to)
+def get_sync(text, pair):
+    l_f, l_t = pair.split()
+    base = load_w(l_t)
     words = text.lower().split()
-    original = words.copy()
-    processed = [transfer(w, l_from, l_to) for w in words]
-    return [give(processed[i], original[i], all_words, l_to) for i in range(len(processed))]
+    orig = list(words)
+    proc = list()
+    for w in words:
+        proc.append(transf(w, l_f, l_t))
+    res = list()
+    for i in range(len(proc)):
+        res.append(give(proc[i], orig[i], base, l_t))
+    return res
 
-async def get_full_line(text, lang_pair):
-    return await asyncio.to_thread(_get_full_line_sync, text, lang_pair)
+async def get_full_line(text, pair):
+    return await asyncio.to_thread(get_sync, text, pair)

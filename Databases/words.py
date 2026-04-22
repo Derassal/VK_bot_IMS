@@ -6,7 +6,7 @@ def read_db():
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM words")
             return cursor.fetchall()
-    except sqlit.Error:
+    except sqlite3.Error:
         return []
 
 def read_db2():
