@@ -50,7 +50,13 @@ def _get_definition_sync(word):
     if not word_en:
         return "\n(!) Слово не распознано, проверьте написание..."
 
-    word_en_clean = word_en.lower().split()[0] if ' ' in word_en else word_en.lower()
+    STOPWORDS = {"to", "a", "an", "the"}
+
+    parts = word_en.lower().split()
+    parts = [w for w in parts if w not in STOPWORDS]
+
+    word_en_clean = parts[-1] if parts else word_en.lower()
+
     word_en_lemma = _wnl.lemmatize(word_en_clean, pos=wn_pos)
 
     synsets = wn.synsets(word_en_lemma, pos=wn_pos)
@@ -62,6 +68,7 @@ def _get_definition_sync(word):
         return f"\n(!) Определение для слова «{lemma_ru}» не найдено."
 
     top_synsets = synsets[:3]
+
     try:
         translated_definitions = [
             translate_text('en', 'ru', syn.definition())
@@ -73,7 +80,9 @@ def _get_definition_sync(word):
     header = f"Слово: {lemma_ru}"
     body = '\n'.join(
         f'{i + 1}) {d.capitalize()}'
-        for i, d in enumerate(translated_definitions))
+        for i, d in enumerate(translated_definitions)
+    )
+
     return f"\n{header}\n{body}"
 
 async def get_definition(word):

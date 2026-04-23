@@ -1,23 +1,40 @@
 import sqlite3
+import re
 
-def create_spanish_db():
-    conn = sqlite3.connect("spanish_words.db")
+def upload_texts():
+    conn = sqlite3.connect('texts.db')
     cur = conn.cursor()
 
+    cur.execute("DROP TABLE IF EXISTS texts")
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS words (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        word TEXT
-    )
+        CREATE TABLE texts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            content TEXT NOT NULL
+        )
     """)
 
-    with open("spanish_words.txt", "r", encoding="utf-8") as f:
-        words = [line.strip() for line in f if line.strip()]
+    try:
+        with open('wow.txt', 'r', encoding='utf-8', errors='ignore') as f:
+            data = f.read()
+            
+        items = re.split(r'\n\s*\n', data)
+        
+        m = list()
+        for i in items:
+            t = i.strip()
+            if len(t) > 10:
+                m.append((t,))
 
-    cur.executemany("INSERT INTO words (word) VALUES (?)", [(w,) for w in words])
+        cur.executemany("INSERT INTO texts (content) VALUES (?)", m)
+        conn.commit()
+        
+        print(f"Успех. Текстов загружено: {len(m)}")
 
-    conn.commit()
-    conn.close()
+    except FileNotFoundError:
+        print("Ошибка: wow.txt не найден")
+        
+    finally:
+        conn.close()
 
 if __name__ == "__main__":
-    create_spanish_db()
+    upload_texts()
