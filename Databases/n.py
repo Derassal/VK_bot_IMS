@@ -1,40 +1,38 @@
 import sqlite3
 import re
+import os
 
-def upload_texts():
-    conn = sqlite3.connect('texts.db')
-    cur = conn.cursor()
+path = 'Databases/words.db'
 
-    cur.execute("DROP TABLE IF EXISTS texts")
-    cur.execute("""
-        CREATE TABLE texts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            content TEXT NOT NULL
-        )
-    """)
+if not os.path.exists('Databases'):
+    os.makedirs('Databases')
 
-    try:
-        with open('wow.txt', 'r', encoding='utf-8', errors='ignore') as f:
-            data = f.read()
+conn = sqlite3.connect(path)
+cur = conn.cursor()
+
+cur.execute("DROP TABLE IF EXISTS words")
+cur.execute("CREATE TABLE words (word TEXT)")
+
+try:
+    with open('wow.txt', 'r', encoding='utf-8', errors='ignore') as f:
+        data = f.read().lower()
+    
+    items = re.findall(r'[а-яё]+', data)
+    uniq = set(items)
+    
+    m = list()
+    for w in uniq:
+        if len(w) > 1:
+            m.append((w,))
             
-        items = re.split(r'\n\s*\n', data)
-        
-        m = list()
-        for i in items:
-            t = i.strip()
-            if len(t) > 10:
-                m.append((t,))
+    cur.executemany("INSERT INTO words (word) VALUES (?)", m)
+    conn.commit()
+    
+    count = len(m)
+    print(f"Загружено слов: {count}")
 
-        cur.executemany("INSERT INTO texts (content) VALUES (?)", m)
-        conn.commit()
-        
-        print(f"Успех. Текстов загружено: {len(m)}")
+except FileNotFoundError:
+    print("Файл wow.txt не найден")
 
-    except FileNotFoundError:
-        print("Ошибка: wow.txt не найден")
-        
-    finally:
-        conn.close()
-
-if __name__ == "__main__":
-    upload_texts()
+finally:
+    conn.close()
